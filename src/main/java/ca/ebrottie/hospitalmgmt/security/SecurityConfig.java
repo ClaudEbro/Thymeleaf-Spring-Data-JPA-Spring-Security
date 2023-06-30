@@ -9,7 +9,10 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+
+import javax.sql.DataSource;
 
 @Configuration
 @EnableWebSecurity
@@ -18,9 +21,14 @@ public class SecurityConfig {
     @Autowired
     private PasswordEncoder passwordEncoder; // I inject PasswordEncoder to hash the password
 
+    @Bean
+    public JdbcUserDetailsManager jdbcUserDetailsManager(DataSource dataSource){  // JdbcUserDetailsManager Authentication Strategy
+
+        return new JdbcUserDetailsManager(dataSource);
+    }
 
     //Personalize httpSecurity.formLogin() by InMemory Authentication
-    @Bean
+    //@Bean
     public InMemoryUserDetailsManager inMemoryUserDetailsManager(){
         return new InMemoryUserDetailsManager(
                 User.withUsername("user1").password(passwordEncoder.encode("12345")).roles("USER").build(),
@@ -32,7 +40,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
 
         httpSecurity.authorizeHttpRequests().requestMatchers("/webjars/**").permitAll(); // To authorized bootstrap
-        httpSecurity.formLogin().loginPage("/login").permitAll(); // To personalize login page
+        httpSecurity.formLogin().loginPage("/login").defaultSuccessUrl("/").permitAll(); // To personalize login page
         httpSecurity.rememberMe();
 
         //Define permissions to access or use PreAuthorize annotation with @EnableMethodSecurity

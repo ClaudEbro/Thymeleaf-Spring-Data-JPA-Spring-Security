@@ -7,8 +7,11 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
 
 import java.util.Date;
 
@@ -45,11 +48,38 @@ public class HospitalMgmtApplication implements CommandLineRunner {
                 .score(57)
                 .build();*/
 
-        // Add patient by Spring JPA
+        // Add patient by Spring JPA with InUserDetailsManager Strategy
         patientRepository.save(new Patient(null,"Mark", new Date(), false,300));
         patientRepository.save(new Patient(null,"Hannah", new Date(), false,4345));
         patientRepository.save(new Patient(null,"Ivanoe", new Date(), true,500));
     }
+
+    //Creating Users by JDBC Authentication Strategy with JdbcUserDetailsManager
+    @Bean
+    CommandLineRunner commandLineRunner(JdbcUserDetailsManager jdbcUserDetailsManager){
+        PasswordEncoder passwordEncoder = passwordEncoder();
+
+        return args -> {
+            UserDetails u1 = jdbcUserDetailsManager.loadUserByUsername("user11");
+            if (u1==null)
+            jdbcUserDetailsManager.createUser(
+                    User.withUsername("user11").password(passwordEncoder.encode("12345")).roles("USER").build()
+            );
+
+            UserDetails u2 = jdbcUserDetailsManager.loadUserByUsername("user22");
+            if (u2==null)
+            jdbcUserDetailsManager.createUser(
+                    User.withUsername("user22").password(passwordEncoder.encode("12345")).roles("USER").build()
+            );
+
+            UserDetails u3 = jdbcUserDetailsManager.loadUserByUsername("admin2");
+            if (u3==null)
+            jdbcUserDetailsManager.createUser(
+                    User.withUsername("admin2").password(passwordEncoder.encode("12345")).roles("USER","ADMIN").build()
+            );
+        };
+    }
+
     @Bean
     public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
