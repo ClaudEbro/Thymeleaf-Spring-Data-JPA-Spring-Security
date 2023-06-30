@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -16,13 +17,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
+/**
+* @author eclaude
+ * */
+
+
 @Controller
 @AllArgsConstructor
 public class PatientController {
 
     private PatientRepository patientRepository; // Injection by constructor
 
-    @GetMapping("/index")
+    @GetMapping("/user/index")
     public String index(Model model,
                         @RequestParam(name="page", defaultValue ="0")int p,
                         @RequestParam(name="size", defaultValue ="4") int s,
@@ -35,37 +41,42 @@ public class PatientController {
         return "patients";
     }
 
-    @GetMapping("/delete")
+    @GetMapping("/admin/deletePatient")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public String delete(Long id, String keyword, int page){
         patientRepository.deleteById(id);
-        return "redirect:/index?page="+page+"&keyword="+keyword;
+        return "redirect:/user/index?page="+page+"&keyword="+keyword;
     }
 
     @GetMapping("/")
     public String home(){
-        return "redirect:/index";
+        return "redirect:/user/index";
     }
 
-    @GetMapping("/formPatients")
+    @GetMapping("/admin/formPatients")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public String formPatient(Model model){
         model.addAttribute("patient", new Patient());
         return "formPatients";
     }
 
-    @PostMapping("/savePatient")
+    @PostMapping("/admin/savePatient")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public String savePatient(@Valid Patient patient, BindingResult bindingResult){
 
         if(bindingResult.hasErrors()){
             return "formPatients";
         }
         patientRepository.save(patient);
-        return "redirect:/index?keyword="+patient.getName();
+        return "redirect:/user/index?keyword="+patient.getName();
     }
 
-    @GetMapping("/editPatient")
+    @GetMapping("/admin/editPatient")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public String editPatient(Model model, @RequestParam(name="id") Long id){
         Patient patient = patientRepository.findById(id).get();
         model.addAttribute("patient", patient);
         return "editPatient";
     }
+
 }
