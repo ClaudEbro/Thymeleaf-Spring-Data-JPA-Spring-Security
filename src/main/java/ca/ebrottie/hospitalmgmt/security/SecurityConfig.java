@@ -1,6 +1,7 @@
 package ca.ebrottie.hospitalmgmt.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import ca.ebrottie.hospitalmgmt.security.service.UserDetailServiceImpl;
+import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -17,11 +18,13 @@ import javax.sql.DataSource;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true) // To protect access by methods
+@AllArgsConstructor
 public class SecurityConfig {
-    @Autowired
-    private PasswordEncoder passwordEncoder; // I inject PasswordEncoder to hash the password
 
-    @Bean
+    private PasswordEncoder passwordEncoder; // I inject PasswordEncoder to hash the password
+    private UserDetailServiceImpl userDetailServiceImpl; // I inject UserDetailService
+
+    //@Bean
     public JdbcUserDetailsManager jdbcUserDetailsManager(DataSource dataSource){  // JdbcUserDetailsManager Authentication Strategy
 
         return new JdbcUserDetailsManager(dataSource);
@@ -50,6 +53,8 @@ public class SecurityConfig {
         httpSecurity.authorizeHttpRequests().anyRequest().authenticated(); // All requests need an authentication.
 
         httpSecurity.exceptionHandling().accessDeniedPage("/notAuthorized"); // To redirect users on this page when they don't have access to some resources.
+
+        httpSecurity.userDetailsService(userDetailServiceImpl);
 
         return httpSecurity.build();
     }

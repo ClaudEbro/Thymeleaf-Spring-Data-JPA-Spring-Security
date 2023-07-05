@@ -2,6 +2,9 @@ package ca.ebrottie.hospitalmgmt;
 
 import ca.ebrottie.hospitalmgmt.entities.Patient;
 import ca.ebrottie.hospitalmgmt.repository.PatientRepository;
+import ca.ebrottie.hospitalmgmt.security.entities.AppRole;
+import ca.ebrottie.hospitalmgmt.security.entities.AppUser;
+import ca.ebrottie.hospitalmgmt.security.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -55,7 +58,7 @@ public class HospitalMgmtApplication implements CommandLineRunner {
     }
 
     //Creating Users by JDBC Authentication Strategy with JdbcUserDetailsManager
-    @Bean
+    //@Bean
     CommandLineRunner commandLineRunner(JdbcUserDetailsManager jdbcUserDetailsManager){
         PasswordEncoder passwordEncoder = passwordEncoder();
 
@@ -77,6 +80,25 @@ public class HospitalMgmtApplication implements CommandLineRunner {
             jdbcUserDetailsManager.createUser(
                     User.withUsername("admin2").password(passwordEncoder.encode("12345")).roles("USER","ADMIN").build()
             );
+        };
+    }
+
+    //Creating Users with UserDetailsService Strategy
+    @Bean
+    CommandLineRunner commandLineRunnerUserDetails(AccountService accountService) {
+        return args -> {
+
+            accountService.addNewRole("USER");
+            accountService.addNewRole("ADMIN");
+
+            accountService.addNewUser("user2", "1234", "user2@gmail.com", "1234");
+            accountService.addNewUser("user3", "1234", "user3@gmail.com", "1234");
+            accountService.addNewUser("admin5", "1234", "admin5@gmail.com", "1234");
+
+            accountService.addRoleToUser("user2", "USER");
+            accountService.addRoleToUser("user3", "USER");
+            accountService.addRoleToUser("admin5", "USER");
+            accountService.addRoleToUser("admin5", "ADMIN");
         };
     }
 
